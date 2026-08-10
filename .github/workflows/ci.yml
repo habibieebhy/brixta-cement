@@ -29,3 +29,24 @@ jobs:
       - run: |
           python -m build packages/cement-aas
           python -m twine check packages/cement-aas/dist/*
+
+  cement-xrd:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "packages/cement-xrd[dev]"
+      - run: python -m ruff check packages/cement-xrd/src packages/cement-xrd/tests
+      - run: python -m pytest packages/cement-xrd/tests -q
+      - run: |
+          python -m build packages/cement-xrd
+          python -m twine check packages/cement-xrd/dist/*
