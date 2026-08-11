@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brixta-cement-xrd"
-version = "0.1.0"
-description = "GSAS-II integration and normalized XRD engine diagnostics for BRIXTA Cement."
+version = "0.2.0"
+description = "GSAS-II integration and quantitative XRD workflow orchestration for BRIXTA Cement."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

@@ -1,0 +1,11 @@
+{
+  "name": "phase-fraction-smoke-test",
+  "version": "1",
+  "steps": [
+    {
+      "set": {
+        "PhaseFraction": true
+      }
+    }
+  ]
+}

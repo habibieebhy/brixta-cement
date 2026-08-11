@@ -89,13 +89,7 @@ def _require_binary_path(gsas_path: ModuleType) -> Path:
     return binary_path
 
 
-def inspect_gsas2(path: str | Path | None = None) -> EngineInfo:
-    """Import GSAS-II and return normalized runtime metadata."""
-
-    root = resolve_gsas2_root(path)
-    _, gsas_path = _import_gsas2(root)
-    binary_path = _require_binary_path(gsas_path)
-
+def _engine_info(root: Path, gsas_path: ModuleType, binary_path: Path) -> EngineInfo:
     try:
         engine_version = str(gsas_path.GetVersionTag())
     except Exception as exc:
@@ -122,3 +116,19 @@ def inspect_gsas2(path: str | Path | None = None) -> EngineInfo:
         python_version=".".join(str(part) for part in sys.version_info[:3]),
         numpy_version=numpy_version,
     )
+
+
+def load_gsas2(path: str | Path | None = None) -> tuple[EngineInfo, ModuleType]:
+    """Load and validate GSAS-II, returning metadata and its scripting module."""
+
+    root = resolve_gsas2_root(path)
+    scriptable, gsas_path = _import_gsas2(root)
+    binary_path = _require_binary_path(gsas_path)
+    return _engine_info(root, gsas_path, binary_path), scriptable
+
+
+def inspect_gsas2(path: str | Path | None = None) -> EngineInfo:
+    """Import GSAS-II and return normalized runtime metadata."""
+
+    info, _ = load_gsas2(path)
+    return info

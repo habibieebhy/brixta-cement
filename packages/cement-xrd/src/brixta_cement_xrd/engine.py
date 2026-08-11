@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .environment import inspect_gsas2
+from .analysis import run_quantitative_analysis
+from .environment import inspect_gsas2, load_gsas2
 from .errors import Gsas2UnavailableError
-from .result import EngineInfo
+from .inputs import RefinementRecipe, XrdAnalysisInput
+from .result import EngineInfo, XrdResult
 
 
 class Gsas2Engine:
@@ -37,3 +39,14 @@ class Gsas2Engine:
         """Require a usable GSAS-II runtime and return its metadata."""
 
         return self.info()
+
+    def analyze(self, request: XrdAnalysisInput, recipe: RefinementRecipe) -> XrdResult:
+        """Run a quantitative GSAS-II powder-XRD refinement."""
+
+        info, scriptable = load_gsas2(self._path)
+        return run_quantitative_analysis(
+            scriptable=scriptable,
+            engine_info=info,
+            request=request,
+            recipe=recipe,
+        )
