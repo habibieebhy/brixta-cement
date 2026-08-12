@@ -1,0 +1,75 @@
+name: Thermo Release
+
+on:
+  push:
+    tags:
+      - "brixta-cement-thermo-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Verify tag version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF_NAME#brixta-cement-thermo-v}"
+          PACKAGE_VERSION="$(python - <<'PY2'
+          import tomllib
+          from pathlib import Path
+          print(tomllib.loads(Path("packages/cement-thermo/pyproject.toml").read_text())["project"]["version"])
+          PY2
+          )"
+          test "$TAG_VERSION" = "$PACKAGE_VERSION"
+      - run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "packages/cement-thermo[dev]"
+      - run: python -m ruff check packages/cement-thermo/src packages/cement-thermo/tests
+      - run: python -m pytest packages/cement-thermo/tests -q
+      - run: python -m build packages/cement-thermo --outdir dist
+      - run: python -m twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brixta-cement-thermo-dist
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi-cement-thermo
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: brixta-cement-thermo-dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: true
+
+  github-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          name: brixta-cement-thermo-dist
+          path: release-dist
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" ./release-dist/* --generate-notes --verify-tag
