@@ -1,0 +1,36 @@
+name: Clinker CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/cement-clinker/**"
+      - ".github/workflows/clinker-ci.yml"
+  pull_request:
+    paths:
+      - "packages/cement-clinker/**"
+      - ".github/workflows/clinker-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "packages/cement-clinker[dev]"
+      - run: python -m ruff check packages/cement-clinker/src packages/cement-clinker/tests
+      - run: python -m pytest packages/cement-clinker/tests -q
+      - run: |
+          python -m build packages/cement-clinker
+          python -m twine check packages/cement-clinker/dist/*
