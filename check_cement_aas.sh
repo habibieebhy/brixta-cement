@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# BRIXTA Cement — Phase 1A local validation
+# BRIXTA Cement AAS local validation.
 # Run this script from the repository root:
 #
 #   bash check_cement_aas.sh
-#
-# Expected repository:
-#   https://github.com/habibieebhy/brixta-cement
 
 if [[ ! -d ".venv" ]]; then
   echo "ERROR: .venv was not found."
@@ -20,11 +17,14 @@ echo "==> Activating virtual environment"
 # shellcheck disable=SC1091
 source .venv/bin/activate
 
+echo "==> Installing local brixta-cement-material dependency"
+python -m pip install -e "packages/cement-material"
+
 echo "==> Installing/updating brixta-cement-aas development dependencies"
 python -m pip install -e "packages/cement-aas[dev]"
 
 echo "==> Running Ruff"
-python -m ruff check   packages/cement-aas/src   packages/cement-aas/tests   examples
+python -m ruff check packages/cement-aas/src packages/cement-aas/tests examples
 
 echo "==> Running tests"
 python -m pytest packages/cement-aas/tests -q

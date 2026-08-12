@@ -9,6 +9,27 @@ permissions:
   contents: read
 
 jobs:
+  cement-material:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "packages/cement-material[dev]"
+      - run: python -m ruff check packages/cement-material/src packages/cement-material/tests
+      - run: python -m pytest packages/cement-material/tests -q
+      - run: |
+          python -m build packages/cement-material
+          python -m twine check packages/cement-material/dist/*
+
   cement-aas:
     runs-on: ubuntu-latest
     strategy:
@@ -23,6 +44,7 @@ jobs:
           cache: pip
       - run: |
           python -m pip install --upgrade pip
+          python -m pip install -e "packages/cement-material"
           python -m pip install -e "packages/cement-aas[dev]"
       - run: python -m ruff check packages/cement-aas/src packages/cement-aas/tests examples
       - run: python -m pytest packages/cement-aas/tests -q

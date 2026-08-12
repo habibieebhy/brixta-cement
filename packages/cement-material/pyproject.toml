@@ -3,17 +3,14 @@ requires = ["setuptools>=80", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "brixta-cement-aas"
-version = "0.2.0"
-description = "Cement-specific Asset Administration Shell compositions for BRIXTA Cement."
+name = "brixta-cement-material"
+version = "0.1.0"
+description = "Unified cement material-state contracts and scientific-result adapters for BRIXTA Cement."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
-dependencies = [
-    "basyx-python-sdk>=2.1,<3",
-    "brixta-cement-material>=0.1,<0.2",
-]
+dependencies = []
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",

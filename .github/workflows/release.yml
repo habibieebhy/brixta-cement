@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     tags:
+      - "brixta-cement-material-v*"
       - "brixta-cement-aas-v*"
       - "brixta-cement-xrd-v*"
 
@@ -10,6 +11,75 @@ permissions:
   contents: read
 
 jobs:
+  build-cement-material:
+    if: startsWith(github.ref_name, 'brixta-cement-material-v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Verify tag version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF_NAME#brixta-cement-material-v}"
+          PACKAGE_VERSION="$(python - <<'PY2'
+          import tomllib
+          from pathlib import Path
+          print(tomllib.loads(Path("packages/cement-material/pyproject.toml").read_text())["project"]["version"])
+          PY2
+          )"
+          test "$TAG_VERSION" = "$PACKAGE_VERSION"
+      - run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "packages/cement-material[dev]"
+      - run: python -m ruff check packages/cement-material/src packages/cement-material/tests
+      - run: python -m pytest packages/cement-material/tests -q
+      - run: python -m build packages/cement-material --outdir dist
+      - run: python -m twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brixta-cement-material-dist
+          path: dist/*
+          if-no-files-found: error
+
+  publish-cement-material:
+    if: startsWith(github.ref_name, 'brixta-cement-material-v')
+    needs: build-cement-material
+    runs-on: ubuntu-latest
+    environment: pypi-cement-material
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: brixta-cement-material-dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: true
+
+  github-release-cement-material:
+    if: startsWith(github.ref_name, 'brixta-cement-material-v')
+    needs: publish-cement-material
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          name: brixta-cement-material-dist
+          path: release-dist
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" ./release-dist/* --generate-notes --verify-tag
+
   build-cement-aas:
     if: startsWith(github.ref_name, 'brixta-cement-aas-v')
     runs-on: ubuntu-latest
@@ -32,6 +102,7 @@ jobs:
           test "$TAG_VERSION" = "$PACKAGE_VERSION"
       - run: |
           python -m pip install --upgrade pip
+          python -m pip install -e "packages/cement-material"
           python -m pip install -e "packages/cement-aas[dev]"
       - run: python -m ruff check packages/cement-aas/src packages/cement-aas/tests examples
       - run: python -m pytest packages/cement-aas/tests -q
