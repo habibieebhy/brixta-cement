@@ -4,36 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brixta-cement-thermo"
-version = "0.1.0"
-description = "External GEMS/xGEMS thermodynamic runtime discovery and orchestration boundary for BRIXTA Cement."
+version = "0.2.0"
+description = "Structured xGEMS/GEMS3K equilibrium orchestration and normalized thermodynamic results for BRIXTA Cement."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
 dependencies = []
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Scientific/Engineering",
-]
 
 [project.optional-dependencies]
-dev = [
-    "build>=1.2",
-    "pytest>=8",
-    "ruff>=0.12",
-    "twine>=6",
-]
+dev = ["build>=1.2", "pytest>=8", "ruff>=0.12", "twine>=6"]
 
 [project.scripts]
 brixta-thermo = "brixta_cement_thermo.cli:main"
-
-[project.urls]
-Repository = "https://github.com/habibieebhy/brixta-cement"
-Issues = "https://github.com/habibieebhy/brixta-cement/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
